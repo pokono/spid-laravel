@@ -702,6 +702,21 @@ class SPIDAuth extends Controller
             $config['sp']['x509cert'] = config('spid-auth.sp_certificate');
         }
 
+        if (!is_string(config('spid-auth.sp_certificate_new')) || empty(config('spid-auth.sp_certificate_new'))) {
+            if (!empty(config('spid-auth.sp_certificate_new_file'))) {
+                $certificateData = file_get_contents(config('spid-auth.sp_certificate_new_file'));
+                $certificate = openssl_pkey_get_public($certificateData);
+
+                if (!$certificate) {
+                    throw new SPIDConfigurationException('Certificate not valid');
+                }
+
+                $config['sp']['x509certNew'] = SAMLUtils::formatCert($certificateData, false);
+            }
+        } else if (!empty(config('spid-auth.sp_certificate_new'))) {
+            $config['sp']['x509certNew'] = config('spid-auth.sp_certificate_new');
+        }
+
         $config['sp']['assertionConsumerService']['index'] = config('spid-auth.sp_acs_index');
         $config['sp']['attributeConsumingService']['index'] = config('spid-auth.sp_attributes_index');
 
